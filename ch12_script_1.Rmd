@@ -105,10 +105,10 @@ x
 
 
 ```{r}
-a <- lm(earnings ~ public + sat + faculty + price, data = x) %>% 
+model_b <- lm(earnings ~ public + sat + faculty + price, data = x) %>% 
   tidy(conf.int = TRUE)
 
-a
+model_b
 ```
 
 ```{r}
@@ -125,7 +125,7 @@ RCM we don't know what the counterfactual outcome is for a given school. Given o
 
 a <- tibble(faculty = 50000, sat = 1400)
 
-predict(a)
+predict(model_a, newdata = a)
 
 ```
 
@@ -134,6 +134,10 @@ predict(a)
 
 **Prompt:** Now that we have our regression model using two numerical explanatory variables, let's find the fitted values and residuals for the model using `augment()`. What do the fitted values and residuals mean, in terms of where they appear in a fitted line graph? Take a look at the biggest residuals, both positive and negative. What causes them? What is the model missing? How might we improve the model?
 
+```{r}
+model_a %>% 
+  augment()
+```
 
 
 ### Scene 9
