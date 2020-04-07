@@ -18,21 +18,76 @@ Today's class will be based on [Chapter 12: "Multiple Regression"](https://david
 
 ### Scene 1
 
+```{r}
+x
+```
+
+
 **Prompt:** Recall the three common steps of exploring a new dataset: 1) looking at the raw data, 2) computing summary statistics, and 3) creating visualizations of the data. Start this process. Useful commands to use here: `glimpse()`,`sample_n`, and `skim` (from the skimr package). What observations are surprising? (Hints: Look at extremes, especially for the key variable you are interested in. Hint at the data for the schools you know.)  
+
+```{r}
+x %>% 
+  arrange(desc(faculty))
+
+
+```
+
 
 ### Scene 2
 
 **Prompt:** What's the correlation between the average faculty salary in 2001 and the median income of students 10 years after entering? What's the correlation between the average SAT scores in 2001 and the median income of students 10 years after entering? Find these by doing two separate correlations first, and then making a correlation matrix (instructions in the book). 
+
+```{r}
+# 
+
+x %>% 
+  summarize(cor(faculty, earnings))
+
+x %>% 
+  summarize(cor(sat, earnings))
+
+x %>% 
+  select(sat, earnings, faculty) %>% 
+  cor()
+```
 
 
 ### Scene 3
 
 **Prompt:** Visualize the relationships between the outcome variable (`earnings`) and the two key numerical explanatory variables (`faculty` and `sat`), one at a time. Create a ggplot for each showing the line of best fit.
 
+```{r}
+
+ggplot(x, aes(faculty, earnings)) +
+  geom_point() +
+  geom_smooth(method = "glm")
+
+ggplot(x, aes(sat, earnings)) +
+  geom_point() +
+  geom_smooth(method = "glm")
+
+```
+
 
 ### Scene 4
 
 **Prompt:** Now let's quantify these relationships between the two explanatory variables and the outcome variable. Fit a multiple regression model for `earnings` using `sat` and `faculty` as the explanatory variables. Write a bullet point interpreting each of the three values in the estimate column. Do not use any interaction terms in the regression (yet).
+
+```{r}
+
+model_a <- lm(earnings ~ sat + faculty, data = x)
+
+model_a %>% 
+  tidy(conf.int = TRUE) %>% 
+  select(term, estimate, conf.low, conf.high)
+
+```
+
+
+- if you have an average sat score of 0 and average faculty income of 0, then you expect earnings to be -2590.98. 
+- for each 1 point increase in the average sat score, you expect to see a 24.48 dollar increase in earnings.
+- for each 1 dollar increase in average faculty salary, you expect to see a 0.39 dollar increase in earnings. 
+
 
 
 ### Scene 5
@@ -44,10 +99,35 @@ Today's class will be based on [Chapter 12: "Multiple Regression"](https://david
 
 **Prompt:** Imagine that you are the university president. There's a global pandemic that is causing serious financial damage to the school endowment, and in response, you want to cut the financial aid budget. However, because many academically talented students will go to whichever school gives them the best financial aid package, slashing the financial aid budget will cause the average SAT score to decrease from 1400 to 1300. Apply the Rubin Causal Model to frame the causal effect of this policy change on the median earnings of students 10 years from now. Write down the units, the treatments, and the outcomes. Define the causal effect of the policy change on median earnings. What is the fundamental problem of causal inference? What must you assume for this causal model to make a causal claim?
 
+```{r}
+x
+```
+
+
+```{r}
+a <- lm(earnings ~ public + sat + faculty + price, data = x) %>% 
+  tidy(conf.int = TRUE)
+
+a
+```
+
+```{r}
+-100 * 12.4571
+```
+
+RCM we don't know what the counterfactual outcome is for a given school. Given our regression model, we would expect a 100 point decrease in average SAT scores to reduce earnings by 1245 dollars. 
 
 ### Scene 7
 
 **Prompt:** Recall the model we made in Scene 4. Use that model to make a prediction. Consider a school with average faculty salary of $50,000 and average SAT of 1400. What would the the median student's earnings be 10 years from now? Although there are fancier ways of doing this in R --- check out the `predict()` function --- you should use the simple approach of using the regression estimates and then plugging in the appropriate values. Then, what would happen if a change in financial aid were to drop the average SAT score to 1300? What would you forecast earnings to be in that case? Putting the two together: What is the causal effect of the drop in SAT? Do you believe that? That is, if you were the university president, would you believe that forecast?
+
+```{r}
+
+a <- tibble(faculty = 50000, sat = 1400)
+
+predict(a)
+
+```
 
 
 ### Scene 8
@@ -95,4 +175,12 @@ How do the confidence intervals from bootstrapping compare to the ones we found 
 ### Challenge Problem: Scene 15
 
 **Prompt:** Make a `gganimate` plot that shows how a `loess` curve is fitted to a scatterplot of `sat` scores and `earnings`. Replicate this animation (or make it even better!): https://rpubs.com/amytan/satscoresandearnings
+
+```{r}
+ggplot(x, aes(sat, earnings)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  transition_manual(sat) +
+  theme_classic()
+```
 
